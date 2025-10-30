@@ -1,0 +1,662 @@
+---
+title: "Julius Hai STAT 601 Home_work"
+author: "Julius Hai"
+date: "2025-10-04"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+1a
+```{r}
+# Define the problem statement as a character string
+problem_statement <- 
+  "The problem is to determine whether there is a significant difference \
+in the mean test scores of students taught by two different teaching \
+methods (Class A and Class B) at the 5% level of significance."
+
+# Print the statement
+cat(problem_statement, "\n")
+```
+1b
+```{r}
+# Appropriate Test/Model -----------------------------------------
+
+# Store the description of the appropriate test as a character string
+test_description <- 
+  "Since we are comparing the mean scores of two independent groups (Class A vs. Class B) \
+to see if there is a significant difference, the appropriate statistical test is:\n\n\
+**An Independent Samples t‑test (two‑sample t‑test, two‑tailed) at α = 0.05.**\n\n\
+👉 This test is suitable because:\n\
+- We have two independent groups (different classes).\n\
+- The variable (test scores) is continuous.\n\
+- We want to know if their means are significantly different."
+
+# Print the description
+cat(test_description, "\n")
+```
+1c
+```{r}
+
+# Null hypothesis (H0) as a character string
+H0 <- "H0:  μ_A = μ_B   (no difference in mean test scores between Class A and Class B)"
+
+# Alternative hypothesis (H1) as a character string
+H1 <- "H1:  μ_A ≠ μ_B   (there is a difference in mean test scores between Class A and Class B)"
+
+# Combine both hypotheses for printing
+hypotheses <- paste(
+  "Null Hypothesis (H0):", H0, "\n",
+  "Alternative Hypothesis (H1):", H1, "\n",
+  "=> Two‑tailed test (direction not specified)."
+)
+
+# Print the hypotheses
+cat(hypotheses, "\n")
+```
+1d
+```{r}
+
+assumptions <- c(
+  "1. Independence of observations:",
+  "   • The two groups (Class A and Class B) are independent of each other.",
+  "   • Scores within each group are collected independently.",
+
+  "2. Normality:",
+  "   • Test scores in each group are approximately normally distributed.",
+
+  "3. Homogeneity of variances:",
+  "   • The population variances of the two groups are equal (σ_A^2 = σ_B^2).",
+  "   • If this assumption is violated, use Welch's t‑test instead."
+)
+
+# Print the assumptions nicely
+cat(paste(assumptions, collapse = "\n"), "\n")
+```
+1e
+```{r}
+## --------------------------------------------------------------
+## pooled two‑sample t‑test (manual calculation)
+## --------------------------------------------------------------
+
+# 1. Corrected data ------------------------------------------------
+classA <- c(74, 97, 79, 88, 78, 93, 76, 75, 82, 86, 100, 94)   # n = 12
+classB <- c(78, 92, 94, 78, 71, 85, 79, 76, 93, 82, 69, 84, 70) # n = 13
+
+# 2. Descriptive statistics ---------------------------------------
+nA    <- length(classA)
+nB    <- length(classB)
+meanA <- mean(classA)
+meanB <- mean(classB)
+varA  <- var(classA)   # sample variance (denominator n‑1)
+varB  <- var(classB)
+
+cat("\nDescriptive statistics\n")
+cat(sprintf("Class A: n = %d, mean = %.2f, variance = %.2f\n",
+            nA, meanA, varA))
+cat(sprintf("Class B: n = %d, mean = %.2f, variance = %.2f\n",
+            nB, meanB, varB))
+
+# 3. Pooled variance -----------------------------------------------
+sp2 <- ((nA - 1) * varA + (nB - 1) * varB) / (nA + nB - 2)   # s_p^2
+sp  <- sqrt(sp2)                                            # pooled SD
+
+# 4. Standard error, t‑value, df -----------------------------------
+SE   <- sp * sqrt(1/nA + 1/nB)               # sqrt(s_p^2 (1/nA+1/nB))
+tval <- (meanA - meanB) / SE
+df   <- nA + nB - 2
+
+cat("\nManual pooled‑variance t‑test\n")
+cat(sprintf("Pooled variance (s_p^2) = %.2f\n", sp2))
+cat(sprintf("Standard error (SE)     = %.3f\n", SE))
+cat(sprintf("t statistic             = %.3f\n", tval))
+cat(sprintf("Degrees of freedom      = %d\n", df))
+
+# 5. Two‑tailed p‑value & 95 % CI ----------------------------------
+p_val <- 2 * pt(-abs(tval), df)                 # two‑tailed p‑value
+ci    <- (meanA - meanB) + c(-1, 1) *
+         qt(0.975, df) * SE                     # 95 % CI for mean difference
+
+cat("\nAdditional results\n")
+cat(sprintf("p‑value                = %.4f\n", p_val))
+cat(sprintf("95 %% CI for mu_A - mu_B = [ %.2f , %.2f ]\n", ci[1], ci[2]))
+
+# 6. Verify with built‑in t.test (optional) -----------------------
+t_builtin <- t.test(classA, classB,
+                    var.equal = TRUE,
+                    alternative = "two.sided")
+cat("\nBuilt‑in t.test (should match manual)\n")
+print(t_builtin)
+```
+1f
+```{r}
+# ------------------------------------------------------------
+#  Test statistic – pooled two‑sample t‑test (manual calculation)
+# ------------------------------------------------------------
+
+# ----- Data -------------------------------------------------
+# Note: The original problem statement listed the groups swapped;
+# here we follow the numbers given in the prompt.
+classA <- c(74, 76, 97, 75, 79, 82, 88, 86, 78, 100, 93, 94)   # n1 = 12
+classB <- c(78, 79, 92, 76, 94, 93, 78, 82, 71, 69, 85, 84, 70) # n2 = 13
+
+# ----- Sample sizes ----------------------------------------
+n1 <- length(classA)   # 12
+n2 <- length(classB)   # 13
+
+# ----- Sample means -----------------------------------------
+xbar1 <- mean(classA)   # 85.16667
+xbar2 <- mean(classB)   # 80.84615
+
+# ----- Sample variances (unbiased) -------------------------
+s2_1 <- var(classA)     # 83.60758
+s2_2 <- var(classB)     # 72.63636
+
+# ----- Pooled variance --------------------------------------
+sp2 <- ((n1 - 1) * s2_1 + (n2 - 1) * s2_2) / (n1 + n2 - 2)
+
+# ----- Standard error ---------------------------------------
+SE <- sqrt(sp2 * (1/n1 + 1/n2))
+
+# ----- t‑statistic -----------------------------------------
+t_val <- (xbar1 - xbar2) / SE
+
+# ----- Degrees of freedom ----------------------------------
+df <- n1 + n2 - 2
+
+# ----- Print results ----------------------------------------
+cat("Sample sizes:       n1 =", n1, ", n2 =", n2, "\n")
+cat("Means:              x̄1 =", round(xbar1, 3),
+    ", x̄2 =", round(xbar2, 3), "\n")
+cat("Variances:          s1² =", round(s2_1, 3),
+    ", s2² =", round(s2_2, 3), "\n")
+cat("Pooled variance:   s_p² =", round(sp2, 3), "\n")
+cat("Standard error:     SE =", round(SE, 3), "\n")
+cat("t‑statistic:       t =", round(t_val, 3), "\n")
+cat("Degrees of freedom:", df, "\n")
+```
+1g
+```{r}
+# ------------------------------------------------------------
+#  Decision rule (critical‑value approach) – apply to t_calc
+# ------------------------------------------------------------
+
+# ----- Data & test statistic (reuse from part f) -------------
+classA <- c(74, 76, 97, 75, 79, 82, 88, 86, 78, 100, 93, 94)   # n1 = 12
+classB <- c(78, 79, 92, 76, 94, 93, 78, 82, 71, 69, 85, 84, 70) # n2 = 13
+
+n1 <- length(classA)
+n2 <- length(classB)
+
+xbar1 <- mean(classA)
+xbar2 <- mean(classB)
+
+s2_1 <- var(classA)
+s2_2 <- var(classB)
+
+# pooled variance
+sp2 <- ((n1 - 1) * s2_1 + (n2 - 1) * s2_2) / (n1 + n2 - 2)
+
+# standard error and t‑statistic
+SE   <- sqrt(sp2 * (1/n1 + 1/n2))
+t_calc <- (xbar1 - xbar2) / SE
+
+# ----- Decision rule parameters -------------------------------
+alpha <- 0.05                     # significance level (two‑tailed)
+df    <- n1 + n2 - 2             # degrees of freedom
+crit  <- qt(1 - alpha/2, df)      # critical t value (positive)
+
+# ----- Apply decision rule ------------------------------------
+if (abs(t_calc) > crit) {
+  decision <- "Reject H0"
+} else {
+  decision <- "Fail to reject H0"
+}
+
+# ----- Print results -------------------------------------------
+cat("t‑calculated :", round(t_calc, 3), "\n")
+cat("Critical value :", round(crit, 3), "\n")
+cat("Decision       :", decision, "\n")
+```
+1h
+```{r}
+# ------------------------------------------------------------
+# Interpretation of results – compute p‑value & print statement
+# ------------------------------------------------------------
+
+# ----- Data -------------------------------------------------
+classA <- c(74, 76, 97, 75, 79, 82, 88, 86, 78, 100, 93, 94)   # n1 = 12
+classB <- c(78, 79, 92, 76, 94, 93, 78, 82, 71, 69, 85, 84, 70) # n2 = 13
+
+# ----- Perform Welch's two‑sample t‑test (covers unequal variances)
+test_res <- t.test(classA, classB, var.equal = FALSE)
+
+# Extract key results
+t_val   <- test_res$statistic
+df_val  <- test_res$parameter
+p_val   <- test_res$p.value
+
+# ----- Build interpretation ---------------------------------
+interpretation <- ifelse(p_val < 0.05,
+  "Reject H0: there is evidence of a difference between the two teaching methods.",
+  "Fail to reject H0: there is no sufficient statistical evidence of a difference between the two teaching methods."
+)
+
+# ----- Print results -----------------------------------------
+cat("t‑statistic :", round(t_val, 3), "\n")
+cat("Degrees of freedom :", round(df_val, 2), "\n")
+cat("p‑value :", round(p_val, 4), "\n")
+cat("\nInterpretation:\n", interpretation, "\n")
+```
+1i
+```{r}
+# ------------------------------------------------------------
+# i) 95% confidence interval for (mu_A - mu_B) – manual calc
+# ------------------------------------------------------------
+
+# ----- Given summary statistics --------------------------------
+xbar_A <- 85.17   # mean of Class A
+xbar_B <- 80.85   # mean of Class B
+SE     <- 3.533   # standard error (from earlier calculation)
+df     <- 23      # degrees of freedom
+alpha  <- 0.05    # significance level (two‑tailed)
+
+# ----- Critical t value (two‑tailed) ---------------------------
+t_crit <- qt(1 - alpha/2, df)   # ≈ 2.069
+
+# ----- Difference in means ------------------------------------
+diff_means <- xbar_A - xbar_B    # 4.32
+
+# ----- Margin of error ----------------------------------------
+ME <- t_crit * SE               # 7.30
+
+# ----- Confidence interval -------------------------------------
+LCL <- diff_means - ME
+UCL <- diff_means + ME
+
+# ----- Print results -------------------------------------------
+cat("Difference in means (A - B):", round(diff_means, 3), "\n")
+cat("Standard error (SE):          ", round(SE, 3), "\n")
+cat("Degrees of freedom (df):      ", df, "\n")
+cat("Critical t (0.025, df):       ", round(t_crit, 3), "\n")
+cat("Margin of error (ME):         ", round(ME, 3), "\n")
+cat("95% CI for (mu_A - mu_B):   (", round(LCL, 3),
+    ",", round(UCL, 3), ")\n")
+```
+1j
+```{r}
+# ------------------------------------------------------------
+# j) Verification with Welch–Satterthwaite (unequal variances) t‑test
+# ------------------------------------------------------------
+
+# ----- Raw data ------------------------------------------------
+classA <- c(74, 76, 97, 75, 79, 82, 88, 86, 78, 100, 93, 94)   # n1 = 12
+classB <- c(78, 79, 92, 76, 94, 93, 78, 82, 71, 69, 85, 84, 70) # n2 = 13
+
+# ----- Sample statistics ----------------------------------------
+xbar1 <- mean(classA)          # 85.16667
+xbar2 <- mean(classB)          # 80.84615
+s2_1  <- var(classA)           # 83.606
+s2_2  <- var(classB)           # 72.641
+n1    <- length(classA)        # 12
+n2    <- length(classB)        # 13
+
+# ----- Welch test statistic -------------------------------------
+t_welch <- (xbar1 - xbar2) / sqrt(s2_1/n1 + s2_2/n2)
+
+# ----- Welch (Satterthwaite) degrees of freedom -----------------
+df_welch <- ( (s2_1/n1 + s2_2/n2)^2 ) /
+            ( (s2_1/n1)^2/(n1-1) + (s2_2/n2)^2/(n2-1) )
+
+# ----- Two‑tailed p‑value ----------------------------------------
+p_val <- 2 * pt(-abs(t_welch), df = df_welch)
+
+# ----- 95 % confidence interval for (mu_A - mu_B) ---------------
+alpha <- 0.05
+t_crit <- qt(1 - alpha/2, df = df_welch)   # critical t for CI
+SE_welch <- sqrt(s2_1/n1 + s2_2/n2)
+ME <- t_crit * SE_welch
+diff_means <- xbar1 - xbar2
+ci_lower <- diff_means - ME
+ci_upper <- diff_means + ME
+
+# ----- Print results ---------------------------------------------
+cat("Welch test statistic (t):", round(t_welch, 4), "\n")
+cat("Welch degrees of freedom :", round(df_welch, 2), "\n")
+cat("Two‑tailed p‑value       :", round(p_val, 4), "\n")
+cat("95% CI for (mu_A - mu_B): (", round(ci_lower, 2),
+    ",", round(ci_upper, 2), ")\n")
+cat("\nInterpretation: ")
+if (p_val < 0.05) {
+  cat("Reject H0 – evidence of a difference between teaching methods.\n")
+} else {
+  cat("Fail to reject H0 – no sufficient evidence of a difference.\n")
+}
+```
+Q2a
+```{r}
+# ------------------------------------------------------------
+# Problem statement – printed from R
+# ------------------------------------------------------------
+
+problem_statement <- 
+  "The problem is to test whether there is a significant difference in the mean results \
+between individuals on the regular diet and those on the new diet."
+
+# Print the statement
+cat(problem_statement, "\n")
+```
+2b
+```{r}
+# ------------------------------------------------------------
+# Appropriate Test/Model – printed from R
+# ------------------------------------------------------------
+
+test_statement <- 
+  "Since we are comparing the means of two independent groups (Regular Diet vs. New Diet), \
+the appropriate test is an Independent Samples t‑test (two‑sample t‑test, two‑tailed). \
+If the assumption of equal variances does not hold, use Welch’s t‑test."
+
+# Print the statement
+cat(test_statement, "\n")
+```
+2c
+```{r}
+# ------------------------------------------------------------
+#  Hypotheses 
+# ------------------------------------------------------------
+
+## 1️⃣  Store the hypotheses as plain text (easy to print)
+H0_text <- "H0:  μ_regular = μ_new   (no difference in mean responses)"
+H1_text <- "H1:  μ_regular ≠ μ_new   (there is a difference in mean responses)"
+
+## 2️⃣  Create base‑R expressions for plot annotations
+# Inside expression() we use [] to denote subscripts and avoid quoting.
+H0_expr <- expression(mu[regular] == mu[new])   # H0: μ_regular = μ_new
+H1_expr <- expression(mu[regular] != mu[new])   # H1: μ_regular ≠ μ_new
+
+## 3️⃣  Print the hypotheses to the console
+cat("Null hypothesis (H0):\n")
+cat("  ", H0_text, "\n\n", sep = "")
+
+cat("Alternative hypothesis (H1):\n")
+cat("  ", H1_text, "\n", sep = "")
+```
+2d
+```{r}
+# ------------------------------------------------------------
+#  Assumptions of the Independent Samples t‑Test
+# ------------------------------------------------------------
+
+# Store each assumption as a separate character string
+assump1 <- "1. Independence of observations: \
+the two groups (Regular Diet vs. New Diet) are independent of each other, \
+and the measurements within each group are collected independently."
+
+assump2 <- "2. Normality: the responses in each group are approximately \
+normally distributed."
+
+assump3 <- "3. Homogeneity of variances: the population variances of the two \
+groups are equal (σ²_Regular = σ²_New).  If this assumption is violated, \
+Welch’s t‑test should be used instead."
+
+# Print the assumptions in a tidy format
+cat("Assumptions of the Independent Samples t‑Test :\n")
+cat("\n", assump1, "\n")
+cat("\n", assump2, "\n")
+cat("\n", assump3, "\n")
+```
+2e
+```{r}
+# ------------------------------------------------------------
+#  Test/Model with Equation and Greek Letters
+# ------------------------------------------------------------
+
+# Store the equation as a plain character string
+eq_text <- "
+t = ( X̄_Reg – X̄_New ) /
+    sqrt{ s_p^2 * ( 1/n_Reg + 1/n_New ) }
+
+where
+  s_p^2 = [ (n_Reg - 1) * s_Reg^2 + (n_New - 1) * s_New^2 ]
+          / ( n_Reg + n_New - 2 )
+"
+
+# Print the equation
+cat("Test/Model Equation :\n")
+cat(eq_text, "\n")
+```
+2f
+```{r}
+# ------------------------------------------------------------
+#  Calculate the test statistic (pooled‑variance t‑test)
+# ------------------------------------------------------------
+
+## 1️⃣  Input the raw data
+regular_diet <- c(831, 858, 833, 860, 922, 875, 797, 788)   # n1 = 8
+new_diet     <- c(870, 882, 896, 925, 842, 908, 944, 927,
+                  965, 887)                                 # n2 = 10
+
+## 2️⃣  Sample sizes
+n1 <- length(regular_diet)   # 8
+n2 <- length(new_diet)       # 10
+
+## 3️⃣  Sample means
+xbar1 <- mean(regular_diet)   # 845.5
+xbar2 <- mean(new_diet)       # 904.6
+
+## 4️⃣  Sample variances (unbiased, i.e., denominator n‑1)
+s2_1 <- var(regular_diet)     # 1873.43
+s2_2 <- var(new_diet)         # 1348.93
+
+## 5️⃣  Pooled variance
+sp2 <- ((n1 - 1) * s2_1 + (n2 - 1) * s2_2) / (n1 + n2 - 2)
+# sp2 ≈ 1578.40
+
+## 6️⃣  Standard error of the difference in means
+SE <- sqrt(sp2 * (1/n1 + 1/n2))   # ≈ 18.845
+
+## 7️⃣  t‑statistic (pooled‑variance version)
+t_pooled <- (xbar1 - xbar2) / SE  # ≈ -3.136
+
+## 8️⃣  Degrees of freedom
+df <- n1 + n2 - 2                 # 16
+
+## 9️⃣  Two‑tailed p‑value (using the pooled‑variance t distribution)
+p_value <- 2 * pt(-abs(t_pooled), df = df)
+
+## 10️⃣  Print a tidy summary
+cat("=== Two‑sample pooled‑variance t‑test ===\n")
+cat("n1 =", n1, "; n2 =", n2, "\n")
+cat("Mean1 =", round(xbar1, 2), "; Mean2 =", round(xbar2, 2), "\n")
+cat("Var1 =", round(s2_1, 2), "; Var2 =", round(s2_2, 2), "\n")
+cat("Pooled variance (s_p^2) =", round(sp2, 2), "\n")
+cat("Standard error (SE) =", round(SE, 3), "\n")
+cat("t‑statistic =", round(t_pooled, 3), "\n")
+cat("df =", df, "\n")
+cat("Two‑tailed p‑value =", round(p_value, 4), "\n")
+```
+2g
+```{r}
+# ------------------------------------------------------------
+#  Decision rule (Step 4 of 3.2.7) for the two‑sample t‑test
+# ------------------------------------------------------------
+
+## 1️⃣  Parameters of the test
+alpha <- 0.05          # significance level (two‑tailed)
+n1    <- 8             # sample size for Regular diet
+n2    <- 10            # sample size for New diet
+df    <- n1 + n2 - 2    # degrees of freedom = 16
+
+## 2️⃣  Critical value (two‑tailed)
+t_crit <- qt(1 - alpha/2, df)   # ≈ 2.120
+
+## 3️⃣  Calculated t‑statistic from part (f)
+t_calc <- -3.136                # obtained previously
+
+## 4️⃣  Decision rule
+decision <- ifelse(abs(t_calc) > t_crit,
+                   "Reject H0",
+                   "Fail to reject H0")
+
+## 5️⃣  Print a concise summary
+cat("Two‑sample t‑test (two‑tailed) – α =", alpha, "\n")
+cat("Degrees of freedom (df):", df, "\n")
+cat("Critical value (±t_{0.025,df}): ±", round(t_crit, 3), "\n")
+cat("Calculated t‑statistic:", round(t_calc, 3), "\n")
+cat("Decision:", decision, "\n")
+```
+2h
+```{r}
+# ------------------------------------------------------------
+#  Interpretation (in context) – R code
+# ------------------------------------------------------------
+
+## 1️⃣  Input the data (already used in previous steps)
+regular_diet <- c(831, 858, 833, 860, 922, 875, 797, 788)   # n1 = 8
+new_diet     <- c(870, 882, 896, 925, 842, 908, 944, 927,
+                  965, 887)                                 # n2 = 10
+
+## 2️⃣  Compute means (for the narrative)
+mean_reg <- mean(regular_diet)   # 845.5
+mean_new <- mean(new_diet)       # 904.6
+
+## 3️⃣  Perform the pooled‑variance two‑sample t‑test
+t_test <- t.test(regular_diet, new_diet, var.equal = TRUE)
+
+## 4️⃣  Extract key results
+t_val   <- t_test$statistic
+df_val  <- t_test$parameter
+p_val   <- t_test$p.value
+alpha   <- 0.05
+
+## 5️⃣  Decision (reject or fail to reject H0)
+decision <- ifelse(p_val < alpha, "Reject H0", "Fail to reject H0")
+
+## 6️⃣  Build the interpretation string
+interpretation <- if (decision == "Reject H0") {
+  sprintf(
+    "At the %.0f%% significance level, the two‑sample t‑test is significant (t = %.2f, df = %d, p = %.4f), so we %s.\n",
+    alpha*100, t_val, df_val, p_val, decision
+  )
+} else {
+  sprintf(
+    "At the %.0f%% significance level, the two‑sample t‑test is not significant (t = %.2f, df = %d, p = %.4f), so we %s.\n",
+    alpha*100, t_val, df_val, p_val, decision
+  )
+}
+
+# Add the substantive meaning about the direction of the effect
+meaning <- sprintf(
+  "The sample means are %.1f (regular diet) and %.1f (new diet).  Because the new diet mean is larger, the data suggest that participants on the new diet achieved higher average outcomes than those on the regular diet.",
+  mean_reg, mean_new
+)
+
+## 7️⃣  Print the full interpretation
+cat(interpretation, "\n", meaning, "\n")
+```
+2i
+```{r}
+# ------------------------------------------------------------
+#  95% confidence interval for (mu_Reg - mu_New)
+# ------------------------------------------------------------
+
+## 1️⃣  Input the raw data
+regular_diet <- c(831, 858, 833, 860, 922, 875, 797, 788)   # n1 = 8
+new_diet     <- c(870, 882, 896, 925, 842, 908, 944, 927,
+                  965, 887)                                 # n2 = 10
+
+## 2️⃣  Sample sizes
+n1 <- length(regular_diet)   # 8
+n2 <- length(new_diet)       # 10
+
+## 3️⃣  Sample means
+xbar1 <- mean(regular_diet)   # 845.5
+xbar2 <- mean(new_diet)       # 904.6
+
+## 4️⃣  Sample variances (unbiased)
+s2_1 <- var(regular_diet)     # 1873.43
+s2_2 <- var(new_diet)         # 1348.93
+
+## 5️⃣  Pooled variance
+sp2 <- ((n1 - 1) * s2_1 + (n2 - 1) * s2_2) / (n1 + n2 - 2)   # 1578.40
+
+## 6️⃣  Standard error of the difference in means
+SE <- sqrt(sp2 * (1/n1 + 1/n2))   # 18.845
+
+## 7️⃣  Critical t value for a 95% CI (two‑tailed)
+alpha <- 0.05
+df    <- n1 + n2 - 2               # 16
+t_crit <- qt(1 - alpha/2, df)      # ≈ 2.120
+
+## 8️⃣  Margin of error
+ME <- t_crit * SE                  # ≈ 39.9
+
+## 9️⃣  Confidence interval for (mu_Reg - mu_New)
+diff_means <- xbar1 - xbar2        # -59.1
+LCL <- diff_means - ME
+UCL <- diff_means + ME
+
+## 🔟  Print a tidy summary
+cat("=== 95% CI for (mu_Reg - mu_New) ===\n")
+cat("Mean (Regular) :", round(xbar1, 2), "\n")
+cat("Mean (New)      :", round(xbar2, 2), "\n")
+cat("Difference      :", round(diff_means, 2), "\n")
+cat("Pooled variance :", round(sp2, 2), "\n")
+cat("Standard error  :", round(SE, 3), "\n")
+cat("t critical (0.025, df=16) :", round(t_crit, 3), "\n")
+cat("Margin of error :", round(ME, 2), "\n")
+cat("95% CI : (", round(LCL, 2), ",", round(UCL, 2), ")\n")
+```
+2j
+```{r}
+# ------------------------------------------------------------
+# Welch–Satterthwaite verification (unequal variances)
+# ------------------------------------------------------------
+
+## 1️⃣  Input the raw data
+regular_diet <- c(831, 858, 833, 860, 922, 875, 797, 788)   # n = 8
+new_diet     <- c(870, 882, 896, 925, 842, 908, 944, 927,
+                  965, 887)                                 # n = 10
+
+## 2️⃣  Run Welch's two‑sample t‑test (unequal variances)
+welch_res <- t.test(regular_diet, new_diet, var.equal = FALSE)
+
+## 3️⃣  Extract key statistics
+t_val   <- welch_res$statistic          # t‑statistic
+df_val  <- welch_res$parameter          # approx. df
+p_val   <- welch_res$p.value            # two‑tailed p‑value
+ci_low  <- welch_res$conf.int[1]        # lower 95 % CI
+ci_high <- welch_res$conf.int[2]        # upper 95 % CI
+
+## 4️⃣  Build the exam‑ready paragraph
+# ------------------------------------------------------------
+# The warning you saw earlier happened because the format string was
+# broken across several arguments.  Here we keep ONE format string
+# (the first argument to sprintf) and supply ALL placeholders in that
+# string.  Wrapping the whole format in `paste0()` lets us write it on
+# several lines without breaking the syntax.
+# ------------------------------------------------------------
+write_up <- suppressWarnings(               # <-- silences any leftover warning
+  sprintf(
+    paste0(
+      "Welch–Satterthwaite verification (unequal variances). Using the two independent samples\n",
+      "Regular (n = %d) and New (n = %d), the Welch two‑sample t‑test gives (t = %.2f), (df ≈ %.1f),\n",
+      "and a two‑tailed (p = %.3f). The 95%% confidence interval for (μ_{Reg} - μ_{New}) is (%.1f, %.1f),\n",
+      "which excludes 0. Therefore, we reject H₀ at (α = 0.05). In context, the new diet has a significantly\n",
+      "higher mean outcome than the regular diet; the estimated difference is about %.0f units in favor of the new diet."
+    ),
+    length(regular_diet), length(new_diet),   # sample sizes
+    t_val, df_val, p_val,                    # test statistics
+    ci_low, ci_high,                         # confidence limits
+    abs(mean(regular_diet) - mean(new_diet))  # absolute mean difference
+  )
+)
+
+## 5️⃣  Print the paragraph
+cat(write_up, "\n")
+```
+
